@@ -1,9 +1,10 @@
 import { useRouter } from 'expo-router';
-import { Host, Button, Column, Text } from '@expo/ui';
 import { ScrollView, View } from 'react-native';
 
+import { CaptureProgressBar } from '@/components/capture/progress-bar';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
+import { UiButton } from '@/components/ui-button';
 import { Spacing } from '@/constants/theme';
 
 export default function CaptureCameraScreen() {
@@ -12,6 +13,7 @@ export default function CaptureCameraScreen() {
 
   return (
     <ThemedView style={{ flex: 1 }}>
+      <CaptureProgressBar percent={0} />
       <ScrollView
         style={{ flex: 1 }}
         contentInsetAdjustmentBehavior="automatic"
@@ -35,20 +37,20 @@ export default function CaptureCameraScreen() {
             Camera preview will appear here. A front photo is required before Check or Review.
           </ThemedText>
         </View>
-        <Host matchContents>
-          <Column>
-            <Button disabled>Shutter</Button>
-            <Button disabled>Add another photo</Button>
-            <Button disabled={!hasFrontPhoto}>Check</Button>
-            <Button disabled={!hasFrontPhoto} onPress={() => router.push('/capture/review')}>
-              Review
-            </Button>
-            <Button variant="outlined" onPress={() => router.back()}>
-              Close
-            </Button>
-            <Text>Check and Review stay off until a front photo exists.</Text>
-          </Column>
-        </Host>
+        <View style={{ gap: Spacing.two }}>
+          <UiButton label="Shutter" disabled />
+          <UiButton label="Add another photo" disabled />
+          <UiButton label="Check" disabled={!hasFrontPhoto} />
+          <UiButton
+            label="Review"
+            disabled={!hasFrontPhoto}
+            onPress={() => router.push('/capture/review')}
+          />
+          <UiButton label="Close" variant="outlined" onPress={() => router.back()} />
+          <ThemedText type="small" themeColor="textSecondary">
+            Check and Review stay off until a front photo exists.
+          </ThemedText>
+        </View>
       </ScrollView>
     </ThemedView>
   );

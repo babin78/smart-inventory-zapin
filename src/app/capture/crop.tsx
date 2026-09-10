@@ -1,8 +1,9 @@
 import { useRouter } from 'expo-router';
-import { Host, Button, Column, Text } from '@expo/ui';
-import { ScrollView } from 'react-native';
+import { ScrollView, View } from 'react-native';
 
+import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
+import { UiButton } from '@/components/ui-button';
 import { Spacing } from '@/constants/theme';
 
 export default function CaptureCropScreen() {
@@ -14,12 +15,12 @@ export default function CaptureCropScreen() {
         style={{ flex: 1 }}
         contentInsetAdjustmentBehavior="automatic"
         contentContainerStyle={{ padding: Spacing.four }}>
-        <Host matchContents>
-          <Column>
-            <Text>Crop and highlight land in the camera phase. Nothing is saved yet.</Text>
-            <Button onPress={() => router.back()}>Back to camera</Button>
-          </Column>
-        </Host>
+        <View style={{ gap: Spacing.three }}>
+          <ThemedText>
+            Crop and highlight land in the camera phase. Nothing is saved yet.
+          </ThemedText>
+          <UiButton label="Back to camera" onPress={() => router.back()} />
+        </View>
       </ScrollView>
     </ThemedView>
   );

@@ -1,5 +1,5 @@
 import { Stack } from 'expo-router/stack';
-import { DarkTheme, DefaultTheme, ThemeProvider } from 'expo-router/react-navigation';
+import { DarkTheme, DefaultTheme, ThemeProvider } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { useColorScheme } from 'react-native';
 
@@ -23,23 +23,24 @@ export default function RootLayout() {
 function RootNavigator() {
   const { ready } = useSession();
 
+  if (!ready) {
+    return <AnimatedSplashOverlay />;
+  }
+
   return (
     <>
       <AnimatedSplashOverlay />
-      {ready ? (
-        <Stack>
-          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-          <Stack.Screen
-            name="capture"
-            options={{
-              headerShown: false,
-              presentation: 'fullScreenModal',
-              animation: 'fade',
-            }}
-          />
-          <Stack.Screen name="settings" options={{ title: 'Settings' }} />
-        </Stack>
-      ) : null}
+      <Stack>
+        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+        <Stack.Screen
+          name="capture"
+          options={{
+            headerShown: false,
+            presentation: 'modal',
+          }}
+        />
+        <Stack.Screen name="settings" options={{ title: 'Settings' }} />
+      </Stack>
     </>
   );
 }

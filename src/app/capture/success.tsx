@@ -1,8 +1,9 @@
 import { useRouter } from 'expo-router';
-import { Host, Button, Column, Text } from '@expo/ui';
-import { ScrollView } from 'react-native';
+import { ScrollView, View } from 'react-native';
 
+import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
+import { UiButton } from '@/components/ui-button';
 import { Spacing } from '@/constants/theme';
 
 export default function CaptureSuccessScreen() {
@@ -14,12 +15,12 @@ export default function CaptureSuccessScreen() {
         style={{ flex: 1 }}
         contentInsetAdjustmentBehavior="automatic"
         contentContainerStyle={{ padding: Spacing.four }}>
-        <Host matchContents>
-          <Column>
-            <Text>Saved. The checkmark animation and camera reset come after ingest.</Text>
-            <Button onPress={() => router.replace('/capture')}>Next item</Button>
-          </Column>
-        </Host>
+        <View style={{ gap: Spacing.three }}>
+          <ThemedText>
+            Saved. The checkmark animation and camera reset come after ingest.
+          </ThemedText>
+          <UiButton label="Next item" onPress={() => router.replace('/capture')} />
+        </View>
       </ScrollView>
     </ThemedView>
   );

@@ -1,7 +1,8 @@
-import { Host, Button, Column, FieldGroup, Text } from '@expo/ui';
-import { ScrollView } from 'react-native';
+import { ScrollView, View } from 'react-native';
 
+import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
+import { UiButton } from '@/components/ui-button';
 import { Spacing } from '@/constants/theme';
 import { useSession } from '@/lib/session';
 
@@ -16,22 +17,33 @@ export default function SettingsScreen() {
         style={{ flex: 1 }}
         contentInsetAdjustmentBehavior="automatic"
         keyboardShouldPersistTaps="handled"
-        contentContainerStyle={{ padding: Spacing.four }}>
-        <Host matchContents>
-          <Column>
-            <FieldGroup>
-              <FieldGroup.Section title="Shopkeeper">
-                <Text>{`Username: ${usernameLabel}`}</Text>
-                <Text>{`Store PIN: ${pinLabel}`}</Text>
-              </FieldGroup.Section>
-            </FieldGroup>
-            <Text>
-              Username and PIN will persist on this device in the next phase. They are required
-              before Submit.
-            </Text>
-            <Button disabled>Save</Button>
-          </Column>
-        </Host>
+        contentContainerStyle={{ padding: Spacing.four, gap: Spacing.three }}>
+        <ThemedText type="subtitle">Shopkeeper</ThemedText>
+        <View
+          style={{
+            padding: Spacing.three,
+            borderRadius: Spacing.three,
+            borderCurve: 'continuous',
+            gap: Spacing.two,
+          }}>
+          <ThemedView type="backgroundElement" style={{ padding: Spacing.three, borderRadius: Spacing.two, borderCurve: 'continuous' }}>
+            <ThemedText type="small" themeColor="textSecondary">
+              Username
+            </ThemedText>
+            <ThemedText>{usernameLabel}</ThemedText>
+          </ThemedView>
+          <ThemedView type="backgroundElement" style={{ padding: Spacing.three, borderRadius: Spacing.two, borderCurve: 'continuous' }}>
+            <ThemedText type="small" themeColor="textSecondary">
+              Store PIN
+            </ThemedText>
+            <ThemedText>{pinLabel}</ThemedText>
+          </ThemedView>
+        </View>
+        <ThemedText type="small" themeColor="textSecondary">
+          Username and PIN will persist on this device in the next phase. They are required before
+          Submit.
+        </ThemedText>
+        <UiButton label="Save" disabled />
       </ScrollView>
     </ThemedView>
   );
