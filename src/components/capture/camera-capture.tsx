@@ -1,21 +1,27 @@
-import { Image } from 'expo-image';
-import { CameraView, useCameraPermissions } from 'expo-camera';
-import { useEffect, useRef, useState, type ComponentRef } from 'react';
-import { Pressable, ScrollView, View } from 'react-native';
-import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { CameraView, useCameraPermissions } from "expo-camera";
+import { Image } from "expo-image";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import { useEffect, useRef, useState, type ComponentRef } from "react";
+import { Pressable, ScrollView, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { PhotoCheck } from '@/components/capture/photo-check';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { UiButton } from '@/components/ui-button';
-import { Spacing } from '@/constants/theme';
-import { draftWithoutPhoto, extraPhotoCount, hasFrontPhoto, visiblePhotos, type DraftPhoto } from '@/lib/draft';
-import { useDraft } from '@/lib/draft-context';
-import { runProductCheck } from '@/lib/check-flow';
-import { deleteDraftPhotoFile, persistPhotoFile } from '@/lib/draft-store';
-import { compressCaptureUri } from '@/lib/image-compress';
-import { hasHapticsNative } from '@/lib/native-modules';
+import { PhotoCheck } from "@/components/capture/photo-check";
+import { ThemedText } from "@/components/themed-text";
+import { ThemedView } from "@/components/themed-view";
+import { UiButton } from "@/components/ui-button";
+import { Spacing } from "@/constants/theme";
+import { runProductCheck } from "@/lib/check-flow";
+import {
+  draftWithoutPhoto,
+  extraPhotoCount,
+  hasFrontPhoto,
+  visiblePhotos,
+  type DraftPhoto,
+} from "@/lib/draft";
+import { useDraft } from "@/lib/draft-context";
+import { deleteDraftPhotoFile, persistPhotoFile } from "@/lib/draft-store";
+import { compressCaptureUri } from "@/lib/image-compress";
+import { hasHapticsNative } from "@/lib/native-modules";
 
 export function CameraCapture() {
   const router = useRouter();
@@ -44,7 +50,9 @@ export function CameraCapture() {
 
   if (!permission) {
     return (
-      <ThemedView style={{ flex: 1, justifyContent: 'center', padding: Spacing.four }}>
+      <ThemedView
+        style={{ flex: 1, justifyContent: "center", padding: Spacing.four }}
+      >
         <ThemedText>Checking camera permission…</ThemedText>
       </ThemedView>
     );
@@ -52,14 +60,28 @@ export function CameraCapture() {
 
   if (!permission.granted) {
     return (
-      <ThemedView style={{ flex: 1, justifyContent: 'center', padding: Spacing.four, gap: Spacing.three }}>
+      <ThemedView
+        style={{
+          flex: 1,
+          justifyContent: "center",
+          padding: Spacing.four,
+          gap: Spacing.three,
+        }}
+      >
         <ThemedText type="subtitle">Photograph the pack</ThemedText>
         <ThemedText>
-          The camera is used only to capture product photos on this device. Photos stay in a local
-          draft until you Submit later.
+          The camera is used only to capture product photos on this device.
+          Photos stay in a local draft until you Submit later.
         </ThemedText>
-        <UiButton label="Grant camera access" onPress={() => void requestPermission()} />
-        <UiButton label="Close" variant="outlined" onPress={() => router.back()} />
+        <UiButton
+          label="Grant camera access"
+          onPress={() => void requestPermission()}
+        />
+        <UiButton
+          label="Close"
+          variant="outlined"
+          onPress={() => router.back()}
+        />
       </ThemedView>
     );
   }
@@ -73,25 +95,30 @@ export function CameraCapture() {
     setCheckHint(null);
     try {
       if (hasHapticsNative()) {
-        const Haptics = require('expo-haptics') as typeof import('expo-haptics');
+        const Haptics =
+          require("expo-haptics") as typeof import("expo-haptics");
         await Haptics.selectionAsync();
       }
       const shot = await cameraRef.current.takePictureAsync({ quality: 0.8 });
       if (!shot?.uri) {
-        throw new Error('Camera did not return a file.');
+        throw new Error("Camera did not return a file.");
       }
-      const compressed = await compressCaptureUri(shot.uri, shot.width, shot.height);
+      const compressed = await compressCaptureUri(
+        shot.uri,
+        shot.width,
+        shot.height,
+      );
       const isFront = !hasFrontPhoto(draft);
       const extraIndex = extraPhotoCount(draft) + 1;
-      const fileName = isFront ? 'front.jpg' : `extra-${extraIndex}.jpg`;
+      const fileName = isFront ? "front.jpg" : `extra-${extraIndex}.jpg`;
       const uri = await persistPhotoFile({
         draftId: draft.draftId,
         sourceUri: compressed.uri,
         fileName,
       });
       const photo: DraftPhoto = {
-        id: fileName.replace(/\.jpg$/i, ''),
-        purpose: isFront ? 'front' : 'extra',
+        id: fileName.replace(/\.jpg$/i, ""),
+        purpose: isFront ? "front" : "extra",
         uri,
         width: compressed.width,
         height: compressed.height,
@@ -99,7 +126,9 @@ export function CameraCapture() {
       await persist({ ...draft, photos: [...draft.photos, photo] });
       setChecking(photo);
     } catch (caught) {
-      setError(caught instanceof Error ? caught.message : 'Could not save the photo.');
+      setError(
+        caught instanceof Error ? caught.message : "Could not save the photo.",
+      );
     } finally {
       setBusy(false);
     }
@@ -128,10 +157,13 @@ export function CameraCapture() {
     try {
       const result = await runProductCheck(draft);
       await persist(result.merged);
-      const note = result.warnings.filter(Boolean).join(' ');
-      setCheckHint(note || 'Label read. Open Review to correct fields, then Check again after another photo.');
+      const note = result.warnings.filter(Boolean).join(" ");
+      setCheckHint(
+        note ||
+          "Label read. Open Review to correct fields, then Check again after another photo.",
+      );
     } catch (caught) {
-      setCheckHint(caught instanceof Error ? caught.message : 'Check failed.');
+      setCheckHint(caught instanceof Error ? caught.message : "Check failed.");
     } finally {
       setCheckBusy(false);
     }
@@ -145,28 +177,30 @@ export function CameraCapture() {
         onUse={() => {
           setChecking(null);
           if (checkId) {
-            router.replace('/capture');
+            router.replace("/capture");
           }
         }}
         onBack={() => {
           setChecking(null);
           if (checkId) {
-            router.replace('/capture');
+            router.replace("/capture");
           }
         }}
         onCrop={() => {
           setChecking(null);
-          router.push(`/capture/crop?photoId=${encodeURIComponent(checking.id)}`);
+          router.push(
+            `/capture/crop?photoId=${encodeURIComponent(checking.id)}`,
+          );
         }}
       />
     );
   }
 
-  const front = draft.photos.find((photo) => photo.purpose === 'front');
+  const front = draft.photos.find((photo) => photo.purpose === "front");
 
   return (
     <ThemedView style={{ flex: 1, paddingBottom: insets.bottom }}>
-      <View style={{ flex: 1, backgroundColor: '#000000', minHeight: 220 }}>
+      <View style={{ flex: 1, backgroundColor: "#000000", minHeight: 220 }}>
         <CameraView
           ref={cameraRef}
           facing="back"
@@ -177,19 +211,25 @@ export function CameraCapture() {
       <View style={{ padding: Spacing.three, gap: Spacing.two }}>
         {draft.photos.length > 0 ? (
           <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-            <View style={{ flexDirection: 'row', gap: Spacing.two }}>
+            <View style={{ flexDirection: "row", gap: Spacing.two }}>
               {visiblePhotos(draft).map((photo) => (
                 <View key={photo.id} style={{ width: 56 }}>
                   <Pressable
                     accessibilityRole="button"
                     accessibilityLabel={`View ${photo.purpose} photo`}
-                    onPress={() => setChecking(photo)}>
+                    onPress={() => setChecking(photo)}
+                  >
                     <Image
                       source={{ uri: photo.uri }}
                       recyclingKey={`${photo.id}-${photo.uri}`}
                       cachePolicy="none"
                       contentFit="cover"
-                      style={{ width: 56, height: 56, borderRadius: 8, backgroundColor: '#222' }}
+                      style={{
+                        width: 56,
+                        height: 56,
+                        borderRadius: 8,
+                        backgroundColor: "#222",
+                      }}
                     />
                   </Pressable>
                   <Pressable
@@ -197,17 +237,21 @@ export function CameraCapture() {
                     accessibilityLabel={`Delete ${photo.purpose} photo`}
                     onPress={() => void retake(photo)}
                     style={{
-                      position: 'absolute',
+                      position: "absolute",
                       top: -6,
                       right: -6,
                       width: 22,
                       height: 22,
                       borderRadius: 11,
-                      backgroundColor: '#8B1E1E',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                    }}>
-                    <ThemedText type="smallBold" style={{ color: '#ffffff', fontSize: 12, lineHeight: 14 }}>
+                      backgroundColor: "#8B1E1E",
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}
+                  >
+                    <ThemedText
+                      type="smallBold"
+                      style={{ color: "#ffffff", fontSize: 12, lineHeight: 14 }}
+                    >
                       ×
                     </ThemedText>
                   </Pressable>
@@ -218,26 +262,31 @@ export function CameraCapture() {
         ) : null}
         <ThemedText type="small" themeColor="textSecondary">
           {busy
-            ? 'Saving photo…'
+            ? "Saving photo…"
             : front
-              ? 'After you accept a photo, shutter takes the next extra shot (dates, barcode, rear).'
-              : 'Front of the pack is required before Check or Review.'}
+              ? "After you accept a photo, shutter takes the next extra shot (dates, barcode, rear)."
+              : "Front of the pack is required before Check or Review."}
         </ThemedText>
         {error ? <ThemedText type="small">{error}</ThemedText> : null}
         {checkHint ? <ThemedText type="small">{checkHint}</ThemedText> : null}
+        {/*getApiDebugText() ? (
+          <ThemedText type="small" themeColor="textSecondary" selectable>
+            {getApiDebugText()}
+          </ThemedText>
+        ) : null*/}
         <Pressable
           accessibilityRole="button"
           accessibilityLabel="Shutter"
           disabled={busy || !ready}
           onPress={() => void takePhoto()}
           style={{
-            alignSelf: 'center',
+            alignSelf: "center",
             width: 72,
             height: 72,
             borderRadius: 36,
-            backgroundColor: '#ffffff',
+            backgroundColor: "#ffffff",
             borderWidth: 4,
-            borderColor: '#2E7D32',
+            borderColor: "#2E7D32",
             opacity: busy || !ready ? 0.45 : 1,
           }}
         />
@@ -247,21 +296,29 @@ export function CameraCapture() {
           onPress={() => void takePhoto()}
         />
         <UiButton
-          label={checkBusy ? 'Reading label…' : 'Check'}
+          label={checkBusy ? "Reading label…" : "Check"}
           disabled={!canLeaveCamera || busy || checkBusy}
           onPress={() => void onCheck()}
         />
-          <UiButton
-            label="Review"
-            disabled={!canLeaveCamera || busy || checkBusy}
-            onPress={() => router.push('/capture/review')}
-          />
-        <View style={{ flexDirection: 'row', gap: Spacing.two }}>
+        <UiButton
+          label="Review"
+          disabled={!canLeaveCamera || busy || checkBusy}
+          onPress={() => router.push("/capture/review")}
+        />
+        <View style={{ flexDirection: "row", gap: Spacing.two }}>
           <View style={{ flex: 1 }}>
-            <UiButton label="Start over" variant="outlined" onPress={() => void resetDraft()} />
+            <UiButton
+              label="Start over"
+              variant="outlined"
+              onPress={() => void resetDraft()}
+            />
           </View>
           <View style={{ flex: 1 }}>
-            <UiButton label="Close" variant="outlined" onPress={() => router.back()} />
+            <UiButton
+              label="Close"
+              variant="outlined"
+              onPress={() => router.back()}
+            />
           </View>
         </View>
       </View>

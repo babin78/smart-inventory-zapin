@@ -14,6 +14,13 @@ HTTPS functions (2nd gen, `asia-south1`). Every catalog route runs Integrity + P
    - `firebase functions:secrets:set SHOP_PIN_HASH`
    - `firebase functions:secrets:set GEMINI_API_KEY`
 8. `firebase deploy --only functions`
+9. Let the default Compute Engine service account sign Storage URLs (needed for Check). In Google Cloud Console: IAM → Service accounts → `648300021335-compute@developer.gserviceaccount.com` → Permissions → Grant access. Principal is that same email. Role: **Service Account Token Creator**. Save, wait about a minute, then Check again. No new APK and no functions redeploy.
+10. Grant that same account **Storage Object Admin** on bucket `smart-invy-zap.firebasestorage.app` (Cloud Storage → bucket → Permissions). Signed PUT uploads need this; deny-all Storage rules do not apply to those URLs.
+
+```powershell
+gcloud services enable iam.googleapis.com --project=smart-invy-zap
+gcloud iam service-accounts add-iam-policy-binding 648300021335-compute@developer.gserviceaccount.com --member="serviceAccount:648300021335-compute@developer.gserviceaccount.com" --role="roles/iam.serviceAccountTokenCreator" --project=smart-invy-zap
+```
 
 The app `app.json` `extra.functionsBaseUrl` is `https://asia-south1-smart-invy-zap.cloudfunctions.net`. After deploy, Check on the phone uses that URL plus the PIN in Settings.
 

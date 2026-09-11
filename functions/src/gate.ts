@@ -82,7 +82,7 @@ export function assertGate(req: Request, env = process.env): GateResult {
     return { ok: false, status: 429, error: 'Too many PIN failures. Try later.' };
   }
 
-  const pin = headerValue(req, PIN_HEADER);
+  const pin = readPin(req);
   const token = headerValue(req, INTEGRITY_HEADER);
   const providedHash = headerValue(req, HASH_HEADER);
   const rawBody = readRawBody(req);
@@ -113,12 +113,23 @@ export function assertGate(req: Request, env = process.env): GateResult {
     return { ok: false, status: 403, error: 'Request hash mismatch.' };
   }
 
-  const storedHash = env.SHOP_PIN_HASH ?? '';
+  const storedHash = normalizeSecret(env.SHOP_PIN_HASH ?? '');
   if (!storedHash) {
     return { ok: false, status: 500, error: 'SHOP_PIN_HASH is not set.' };
   }
+  if (!storedHash.startsWith('scrypt$')) {
+    return {
+      ok: false,
+      status: 500,
+      error: 'SHOP_PIN_HASH is malformed. Store the scrypt$ value from npm run hash-pin, not the PIN itself.',
+    };
+  }
 
-  if (!pin || !verifyPin(pin, storedHash)) {
+  if (!pin) {
+    return { ok: false, status: 403, error: 'Missing store PIN.' };
+  }
+
+  if (!verifyPin(pin, storedHash)) {
     const { locked } = recordPinFailure(key);
     return {
       ok: false,
@@ -131,8 +142,24 @@ export function assertGate(req: Request, env = process.env): GateResult {
   return { ok: true };
 }
 
+function normalizeSecret(value: string): string {
+  return value.trim().replace(/^['"]|['"]$/g, '');
+}
+
+function readPin(req: Request): string {
+  const fromHeader = headerValue(req, PIN_HEADER);
+  if (fromHeader) {
+    return fromHeader;
+  }
+  const body = req.body as { shopPin?: unknown } | undefined;
+  if (body && typeof body.shopPin === 'string') {
+    return body.shopPin.trim();
+  }
+  return '';
+}
+
 function headerValue(req: Request, name: string): string {
-  const value = req.headers[name];
+  const value = req.headers[name] ?? req.headers[name.toLowerCase()];
   if (Array.isArray(value)) {
     return value[0]?.trim() ?? '';
   }

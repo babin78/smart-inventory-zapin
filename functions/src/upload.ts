@@ -20,11 +20,24 @@ export async function handleCreateUploadUrl(body: unknown): Promise<{ uploadUrl:
 
   const storagePath = `captures/${draftId}/${purpose}-${Date.now()}-${randomBytes(4).toString('hex')}.jpg`;
   const file = getStorage().bucket().file(storagePath);
-  const [uploadUrl] = await file.getSignedUrl({
-    version: 'v4',
-    action: 'write',
-    expires: Date.now() + 10 * 60 * 1000,
-    contentType: 'image/jpeg',
-  });
-  return { uploadUrl, storagePath };
+  try {
+    const [uploadUrl] = await file.getSignedUrl({
+      version: 'v4',
+      action: 'write',
+      expires: Date.now() + 10 * 60 * 1000,
+      contentType: 'image/jpeg',
+    });
+    return { uploadUrl, storagePath };
+  } catch (error) {
+    const message = error instanceof Error ? error.message : '';
+    if (message.includes('signBlob')) {
+      throw Object.assign(
+        new Error(
+          'Functions cannot sign upload URLs. Grant role Service Account Token Creator to 648300021335-compute@developer.gserviceaccount.com on that same service account, then wait a minute and Check again.',
+        ),
+        { status: 500 },
+      );
+    }
+    throw error;
+  }
 }

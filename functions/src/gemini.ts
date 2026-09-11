@@ -1,11 +1,11 @@
-import { EXTRACT_KEYS } from './merge';
+import { EXTRACT_KEYS } from "./merge";
 
-const MODEL = process.env.GEMINI_MODEL ?? 'gemini-2.5-flash';
+const MODEL = process.env.GEMINI_MODEL ?? "gemini-3.5-flash-lite";
 
-const stringField = { type: 'STRING', nullable: true };
+const stringField = { type: "STRING", nullable: true };
 
 const RESPONSE_SCHEMA = {
-  type: 'OBJECT',
+  type: "OBJECT",
   properties: {
     product_item_id: stringField,
     product_name: stringField,
@@ -32,7 +32,7 @@ export async function extractFromImages(
   apiKey: string,
 ): Promise<Record<string, unknown>> {
   if (images.length === 0) {
-    throw Object.assign(new Error('No images to extract.'), { status: 400 });
+    throw Object.assign(new Error("No images to extract."), { status: 400 });
   }
 
   const url = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${encodeURIComponent(apiKey)}`;
@@ -44,13 +44,13 @@ export async function extractFromImages(
   ];
 
   const response = await fetch(url, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
-      contents: [{ role: 'user', parts }],
+      contents: [{ role: "user", parts }],
       generationConfig: {
         temperature: 0.2,
-        responseMimeType: 'application/json',
+        responseMimeType: "application/json",
         responseSchema: RESPONSE_SCHEMA,
       },
     }),
@@ -62,17 +62,27 @@ export async function extractFromImages(
   };
 
   if (!response.ok) {
-    throw Object.assign(new Error(json.error?.message ?? 'Gemini request failed.'), { status: 502 });
+    throw Object.assign(
+      new Error(json.error?.message ?? `Gemini request failed (${MODEL}).`),
+      { status: 502 },
+    );
   }
 
-  const text = json.candidates?.[0]?.content?.parts?.map((part) => part.text ?? '').join('') ?? '';
+  const text =
+    json.candidates?.[0]?.content?.parts
+      ?.map((part) => part.text ?? "")
+      .join("") ?? "";
   if (!text.trim()) {
-    throw Object.assign(new Error('Gemini returned an empty extract.'), { status: 502 });
+    throw Object.assign(new Error("Gemini returned an empty extract."), {
+      status: 502,
+    });
   }
 
   try {
     return JSON.parse(text) as Record<string, unknown>;
   } catch {
-    throw Object.assign(new Error('Gemini returned invalid JSON.'), { status: 502 });
+    throw Object.assign(new Error("Gemini returned invalid JSON."), {
+      status: 502,
+    });
   }
 }

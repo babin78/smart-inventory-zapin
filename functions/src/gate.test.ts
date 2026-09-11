@@ -78,6 +78,42 @@ test('assertGate accepts debug token and correct PIN', () => {
   assert.equal(result.ok, true);
 });
 
+test('assertGate accepts PIN from JSON body when header is missing', () => {
+  clearPinFailures('203.0.113.10');
+  const pinHash = hashPin('2468');
+  const body = { ping: true, shopPin: '2468' };
+  const result = assertGate(
+    fakeReq(
+      {
+        [INTEGRITY_HEADER]: 'debug.token',
+        [HASH_HEADER]: requestBodyHash(JSON.stringify(body)),
+      },
+      body,
+    ),
+    { SHOP_PIN_HASH: pinHash, INTEGRITY_MODE: 'debug' },
+  );
+  assert.equal(result.ok, true);
+});
+
+test('assertGate rejects a plaintext PIN stored as SHOP_PIN_HASH', () => {
+  const body = { ping: true };
+  const result = assertGate(
+    fakeReq(
+      {
+        [PIN_HEADER]: '1234',
+        [INTEGRITY_HEADER]: 'debug.token',
+        [HASH_HEADER]: requestBodyHash(JSON.stringify(body)),
+      },
+      body,
+    ),
+    { SHOP_PIN_HASH: '1234', INTEGRITY_MODE: 'debug' },
+  );
+  assert.equal(result.ok, false);
+  if (!result.ok) {
+    assert.equal(result.status, 500);
+    assert.match(result.error, /malformed/i);
+  }
+});
 test('assertGate rejects debug tokens in production', () => {
   const pinHash = hashPin('2468');
   const result = assertGate(
