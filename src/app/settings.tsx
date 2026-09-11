@@ -1,5 +1,7 @@
+import { useState } from 'react';
 import { ScrollView, View } from 'react-native';
 
+import { FormField } from '@/components/form-field';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { UiButton } from '@/components/ui-button';
@@ -7,9 +9,41 @@ import { Spacing } from '@/constants/theme';
 import { useSession } from '@/lib/session';
 
 export default function SettingsScreen() {
-  const { session } = useSession();
-  const usernameLabel = session.username.length > 0 ? session.username : 'Not set';
-  const pinLabel = session.pin.length > 0 ? 'Saved on this device' : 'Not set';
+  const { session, saveSession, persistsAcrossRestarts } = useSession();
+  const [username, setUsername] = useState(session.username);
+  const [pin, setPin] = useState(session.pin);
+  const [pending, setPending] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [saved, setSaved] = useState(false);
+
+  async function onSave() {
+    if (pending) {
+      return;
+    }
+
+    const nextUsername = username.trim();
+    const nextPin = pin.trim();
+    if (nextUsername.length === 0 || nextPin.length === 0) {
+      setSaved(false);
+      setError('Enter both a username and a store PIN.');
+      return;
+    }
+
+    setPending(true);
+    setError(null);
+    setSaved(false);
+
+    try {
+      const stored = await saveSession({ username: nextUsername, pin: nextPin });
+      setUsername(stored.username);
+      setPin(stored.pin);
+      setSaved(true);
+    } catch {
+      setError('Could not save on this device. Keep the values and try again.');
+    } finally {
+      setPending(false);
+    }
+  }
 
   return (
     <ThemedView style={{ flex: 1 }}>
@@ -19,31 +53,46 @@ export default function SettingsScreen() {
         keyboardShouldPersistTaps="handled"
         contentContainerStyle={{ padding: Spacing.four, gap: Spacing.three }}>
         <ThemedText type="subtitle">Shopkeeper</ThemedText>
-        <View
-          style={{
-            padding: Spacing.three,
-            borderRadius: Spacing.three,
-            borderCurve: 'continuous',
-            gap: Spacing.two,
-          }}>
-          <ThemedView type="backgroundElement" style={{ padding: Spacing.three, borderRadius: Spacing.two, borderCurve: 'continuous' }}>
-            <ThemedText type="small" themeColor="textSecondary">
-              Username
-            </ThemedText>
-            <ThemedText>{usernameLabel}</ThemedText>
-          </ThemedView>
-          <ThemedView type="backgroundElement" style={{ padding: Spacing.three, borderRadius: Spacing.two, borderCurve: 'continuous' }}>
-            <ThemedText type="small" themeColor="textSecondary">
-              Store PIN
-            </ThemedText>
-            <ThemedText>{pinLabel}</ThemedText>
-          </ThemedView>
+        <View style={{ gap: Spacing.two }}>
+          <FormField
+            label="Username"
+            value={username}
+            onChangeText={(value) => {
+              setUsername(value);
+              setSaved(false);
+            }}
+            autoCapitalize="none"
+            autoCorrect={false}
+            placeholder="Shop name or your name"
+          />
+          <FormField
+            label="Store PIN"
+            value={pin}
+            onChangeText={(value) => {
+              setPin(value);
+              setSaved(false);
+            }}
+            autoCapitalize="none"
+            autoCorrect={false}
+            keyboardType="number-pad"
+            secureTextEntry
+            placeholder="Shared store PIN"
+          />
         </View>
         <ThemedText type="small" themeColor="textSecondary">
-          Username and PIN will persist on this device in the next phase. They are required before
-          Submit.
+          {persistsAcrossRestarts
+            ? 'Saved on this phone only. Submit stays blocked until both fields are stored. The PIN is not a Google or Firebase login.'
+            : 'This install does not include secure storage yet. Save still unlocks Submit for this session. Install a new development build so username and PIN survive an app kill.'}
         </ThemedText>
-        <UiButton label="Save" disabled />
+        {error ? <ThemedText type="small">{error}</ThemedText> : null}
+        {saved ? (
+          <ThemedText type="small">
+            {persistsAcrossRestarts
+              ? 'Saved. Force-close the app and reopen to confirm they remain.'
+              : 'Saved for this session. Rebuild the app to keep them after a restart.'}
+          </ThemedText>
+        ) : null}
+        <UiButton label={pending ? 'Saving…' : 'Save'} disabled={pending} onPress={onSave} />
       </ScrollView>
     </ThemedView>
   );

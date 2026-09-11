@@ -1,57 +1,36 @@
 import { useRouter } from 'expo-router';
-import { ScrollView, View } from 'react-native';
+import { useState } from 'react';
 
-import { CaptureProgressBar } from '@/components/capture/progress-bar';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { UiButton } from '@/components/ui-button';
 import { Spacing } from '@/constants/theme';
+import { captureNeedsDevClient } from '@/lib/native-modules';
 
 export default function CaptureCameraScreen() {
   const router = useRouter();
-  const hasFrontPhoto = false;
 
-  return (
-    <ThemedView style={{ flex: 1 }}>
-      <CaptureProgressBar percent={0} />
-      <ScrollView
-        style={{ flex: 1 }}
-        contentInsetAdjustmentBehavior="automatic"
-        contentContainerStyle={{
-          padding: Spacing.four,
-          gap: Spacing.three,
-          flexGrow: 1,
-        }}>
-        <View
-          style={{
-            flex: 1,
-            minHeight: 280,
-            borderRadius: Spacing.four,
-            borderCurve: 'continuous',
-            backgroundColor: '#111111',
-            alignItems: 'center',
-            justifyContent: 'center',
-            padding: Spacing.four,
-          }}>
-          <ThemedText style={{ color: '#ffffff', textAlign: 'center' }}>
-            Camera preview will appear here. A front photo is required before Check or Review.
-          </ThemedText>
-        </View>
-        <View style={{ gap: Spacing.two }}>
-          <UiButton label="Shutter" disabled />
-          <UiButton label="Add another photo" disabled />
-          <UiButton label="Check" disabled={!hasFrontPhoto} />
-          <UiButton
-            label="Review"
-            disabled={!hasFrontPhoto}
-            onPress={() => router.push('/capture/review')}
-          />
-          <UiButton label="Close" variant="outlined" onPress={() => router.back()} />
-          <ThemedText type="small" themeColor="textSecondary">
-            Check and Review stay off until a front photo exists.
-          </ThemedText>
-        </View>
-      </ScrollView>
-    </ThemedView>
+  if (captureNeedsDevClient()) {
+    return (
+      <ThemedView style={{ flex: 1, padding: Spacing.four, gap: Spacing.three }}>
+        <ThemedText type="subtitle">Camera needs a new development build</ThemedText>
+        <ThemedText>
+          This phase uses expo-camera, file storage, and image compression. Rebuild the EAS
+          development APK, install it, then open the project with the dev client.
+        </ThemedText>
+        <UiButton label="Close" variant="outlined" onPress={() => router.back()} />
+      </ThemedView>
+    );
+  }
+
+  return <LoadedCameraCapture />;
+}
+
+function LoadedCameraCapture() {
+  const [CameraCapture] = useState(
+    () =>
+      (require('@/components/capture/camera-capture') as typeof import('@/components/capture/camera-capture'))
+        .CameraCapture,
   );
+  return <CameraCapture />;
 }

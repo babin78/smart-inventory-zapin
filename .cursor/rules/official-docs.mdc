@@ -1,0 +1,25 @@
+---
+description: Approved official docs for this Expo inventory app
+alwaysApply: true
+---
+
+# Trusted docs
+
+When looking up APIs, build, or test behavior for this app, use these sources. Do not ask for extra permission to read them.
+
+- **Expo** — https://expo.dev
+- **Expo SDK 57** — https://docs.expo.dev/versions/v57.0.0/
+- **React Native** — https://reactnative.dev
+- **Firebase** — https://firebase.google.com/docs
+- **Cloud Functions** — https://firebase.google.com/docs/functions
+- **Firestore** — https://firebase.google.com/docs/firestore
+- **Cloud Storage** — https://firebase.google.com/docs/storage
+- **Firebase Admin** — https://firebase.google.com/docs/admin/setup
+- **Gemini API** — https://ai.google.dev/gemini-api/docs
+- **Play Integrity** — https://developer.android.com/google/play/integrity
+- **Google Cloud** — https://cloud.google.com/docs
+- **Reanimated** — https://docs.swmansion.com/react-native-reanimated/
+- **Gesture Handler** — https://docs.swmansion.com/react-native-gesture-handler/
+- **SheetJS** — https://docs.sheetjs.com
+
+Prefer Expo SDK 57 pages over unversioned Expo docs when writing code.

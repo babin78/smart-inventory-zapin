@@ -1,0 +1,8 @@
+{
+  "autoRun": {
+    "allow_instructions": [
+      "Allow read-only WebFetch and documentation lookups on expo.dev, docs.expo.dev, reactnative.dev, firebase.google.com, ai.google.dev, developer.android.com, cloud.google.com, docs.swmansion.com, and docs.sheetjs.com during develop, build, and test.",
+      "Allow Expo MCP documentation tools for this repository."
+    ]
+  }
+}

@@ -26,6 +26,15 @@
     },
     "plugins": [
       "expo-router",
+      "expo-secure-store",
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Allow $(PRODUCT_NAME) to photograph product packs.",
+          "recordAudioAndroid": false,
+          "barcodeScannerEnabled": false
+        }
+      ],
       [
         "expo-splash-screen",
         {
@@ -43,7 +52,10 @@
       "router": {},
       "eas": {
         "projectId": "ed7b76ed-e919-499d-98f8-e0a7b15facd7"
-      }
+      },
+      "functionsBaseUrl": "https://asia-south1-smart-invy-zap.cloudfunctions.net",
+      "integrityMode": "debug",
+      "cloudProjectNumber": ""
     }
   }
 }
